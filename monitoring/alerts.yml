@@ -1,0 +1,10 @@
+groups:
+  - name: banking-api
+    rules:
+      - alert: BankingApiDown
+        expr: up{job="banking-api"} == 0
+        for: 2m
+      - alert: BankingApiHighErrorRate
+        expr: rate(banking_http_requests_total{status=~"5.."}[5m]) / rate(banking_http_requests_total[5m]) > 0.05
+        for: 5m
+

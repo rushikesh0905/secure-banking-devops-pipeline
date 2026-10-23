@@ -1,0 +1,23 @@
+services:
+  mongo:
+    image: mongo:8.0
+    restart: unless-stopped
+    volumes: [mongo-data:/data/db]
+    healthcheck: { test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"], interval: 10s, timeout: 5s, retries: 10 }
+  backend:
+    build: { context: ., dockerfile: docker/backend.Dockerfile }
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      MONGO_URI: mongodb://mongo:27017/secure_banking
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      CLIENT_ORIGIN: http://localhost:8080
+    depends_on: { mongo: { condition: service_healthy } }
+    ports: ["4000:4000"]
+  frontend:
+    build: { context: ., dockerfile: docker/frontend.Dockerfile }
+    depends_on: [backend]
+    ports: ["8080:80"]
+volumes:
+  mongo-data:
+
